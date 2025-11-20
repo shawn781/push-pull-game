@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>推拉小勇士</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .scene-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .text-area {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 15px;
+        }
+        
+        .problem {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+        
+        .hint {
+            font-size: 1rem;
+            color: #ffeb3b;
+            font-style: italic;
+        }
+        
+        .scene {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 15px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scene-object {
+            position: absolute;
+            transition: all 1s ease;
+        }
+        
+        .animal {
+            font-size: 5rem;
+            z-index: 10;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .tree {
+            font-size: 6rem;
+            z-index: 5;
+        }
+        
+        .rock {
+            font-size: 5rem;
+            z-index: 5;
+        }
+        
+        .banana {
+            font-size: 3rem;
+            z-index: 15;
+        }
+        
+        .branch {
+            font-size: 4rem;
+            z-index: 8;
+        }
+        
+        .turtle {
+            font-size: 4rem;
+            z-index: 10;
+        }
+        
+        .giraffe {
+            font-size: 5rem;
+            z-index: 10;
+        }
+        
+        .fence {
+            font-size: 4rem;
+            z-index: 5;
+        }
+        
+        .hole {
+            width: 120px;
+            height: 100px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 1;
+        }
+        
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: #8FBC8F;
+            z-index: 2;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-push {
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            color: white;
+        }
+        
+        .btn-pull {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .feedback {
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .correct {
+            color: #4CAF50;
+        }
+        
+        .incorrect {
+            color: #F44336;
+        }
+        
+        .medals {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .medal {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .medal.earned {
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA000);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .medal-icon {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .medal-text {
+            font-size: 0.7rem;
+            text-align: center;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .qr-code {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+            }
+            
+            .animal {
+                font-size: 4rem;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease;
+        }
+        
+        .success-animation {
+            animation: success 1s ease;
+        }
+        
+        @keyframes success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>推拉小勇士</h1>
+            <p class="subtitle">帮助小动物解决难题，赢取推力/拉力勋章！</p>
+        </div>
+        
+        <div class="game-area">
+            <div class="level">关卡: <span id="level">1</span>/5</div>
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="scene-container">
+                <div class="text-area">
+                    <div class="problem" id="problem">小熊被卡在树洞里，需要帮助它出来</div>
+                    <div class="hint" id="hint">提示：树洞太小，小熊无法自己转身</div>
+                </div>
+                
+                <div class="scene" id="scene">
+                    <!-- 动态场景元素将通过JavaScript添加 -->
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-push" id="push-btn">推</button>
+                <button class="btn btn-pull" id="pull-btn">拉</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="medals">
+                <div class="medal" id="medal-1">
+                    <div class="medal-icon">🥉</div>
+                    <div class="medal-text">推力勋章</div>
+                </div>
+                <div class="medal" id="medal-2">
+                    <div class="medal-icon">🥈</div>
+                    <div class="medal-text">拉力勋章</div>
+                </div>
+                <div class="medal" id="medal-3">
+                    <div class="medal-icon">🥇</div>
+                    <div class="medal-text">推拉大师</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>游戏说明</h3>
+            <ul>
+                <li>观察动态场景，选择正确的"推"或"拉"动作</li>
+                <li>答对5道题即可获得所有勋章</li>
+                <li>每个场景都有提示，仔细观察哦！</li>
+                <li>扫描二维码在手机上玩更便捷！</li>
+            </ul>
+        </div>
+        
+        <div class="qr-code">
+            <div id="qrcode"></div>
+            <p style="color: #333; margin-top: 10px;">扫描二维码在手机上玩</p>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const gameData = [
+            {
+                animal: "🐻",
+                objects: [
+                    { type: "tree", emoji: "🌳", class: "tree", position: { right: "20px", bottom: "20px" } },
+                    { type: "hole", class: "hole", position: { right: "50px", bottom: "20px" } }
+                ],
+                problem: "小熊被卡在树洞里，需要帮助它出来",
+                hint: "提示：树洞太小，小熊无法自己转身",
+                correctAction: "pull",
+                explanation: "正确！小熊被卡在树洞里，应该把它拉出来。",
+                animalInitialPosition: { right: "55px", bottom: "35px" },
+                animalFinalPosition: { right: "120px", bottom: "35px" }
+            },
+            {
+                animal: "🐘",
+                objects: [
+                    { type: "rock", emoji: "🪨", class: "rock", position: { left: "180px", bottom: "20px" } },
+                    { type: "ground", class: "ground", position: { bottom: "0", left: "0" } }
+                ],
+                problem: "小象想移动挡路的巨石",
+                hint: "提示：小象力气很大，但巨石很重",
+                correctAction: "push",
+                explanation: "正确！小象力气很大，可以推开巨石。",
+                animalInitialPosition: { left: "100px", bottom: "20px" },
+                objectInitialPosition: { left: "180px", bottom: "20px" },
+                objectFinalPosition: { left: "250px", bottom: "20px" }
+            },
+            {
+                animal: "🐒",
+                objects: [
+                    { type: "banana", emoji: "🍌", class: "banana", position: { top: "30px", right: "50px" } },
+                    { type: "branch", emoji: "🌿", class: "branch", position: { top: "60px", right: "40px" } },
+                    { type: "tree", emoji: "🌳", class: "tree", position: { right: "20px", bottom: "20px" } }
+                ],
+                problem: "小猴子想拿到高处的香蕉",
+                hint: "提示：树枝很柔韧，但小猴子很轻",
+                correctAction: "pull",
+                explanation: "正确！小猴子可以通过拉树枝来拿到香蕉。",
+                animalInitialPosition: { left: "100px", bottom: "20px" },
+                objectInitialPosition: { top: "30px", right: "50px" },
+                objectFinalPosition: { top: "120px", right: "50px" }
+            },
+            {
+                animal: "🐢",
+                objects: [
+                    { type: "ground", class: "ground", position: { bottom: "0", left: "0" } }
+                ],
+                problem: "小乌龟翻不过身，需要帮助",
+                hint: "提示：小乌龟的壳很硬，但肚子朝上",
+                correctAction: "push",
+                explanation: "正确！轻轻一推就能帮小乌龟翻过身来。",
+                animalInitialPosition: { left: "150px", bottom: "30px" },
+                animalInitialRotation: "rotate(180deg)",
+                animalFinalRotation: "rotate(0deg)"
+            },
+            {
+                animal: "🦒",
+                objects: [
+                    { type: "fence", emoji: "🌿", class: "fence", position: { top: "40px", left: "30px" } },
+                    { type: "tree", emoji: "🌳", class: "tree", position: { right: "20px", bottom: "20px" } }
+                ],
+                problem: "长颈鹿的脖子卡在树枝间",
+                hint: "提示：长颈鹿的脖子很长，但树枝很密",
+                correctAction: "pull",
+                explanation: "正确！需要小心地把长颈鹿从树枝间拉出来。",
+                animalInitialPosition: { left: "35px", top: "45px" },
+                animalFinalPosition: { left: "35px", top: "-30px" }
+            }
+        ];
+
+        // 游戏状态
+        let currentLevel = 0;
+        let score = 0;
+        const totalLevels = gameData.length;
+
+        // DOM元素
+        const levelElement = document.getElementById('level');
+        const progressBar = document.getElementById('progress-bar');
+        const problemElement = document.getElementById('problem');
+        const hintElement = document.getElementById('hint');
+        const sceneElement = document.getElementById('scene');
+        const pushButton = document.getElementById('push-btn');
+        const pullButton = document.getElementById('pull-btn');
+        const feedbackElement = document.getElementById('feedback');
+        const medals = [
+            document.getElementById('medal-1'),
+            document.getElementById('medal-2'),
+            document.getElementById('medal-3')
+        ];
+
+        // 存储当前场景的对象引用
+        let currentAnimalElement = null;
+        let currentObjectElements = [];
+
+        // 初始化游戏
+        function initGame() {
+            updateScene();
+            
+            // 添加按钮事件监听
+            pushButton.addEventListener('click', () => checkAnswer('push'));
+            pullButton.addEventListener('click', () => checkAnswer('pull'));
+            
+            // 生成二维码
+            generateQRCode();
+        }
+
+        // 更新场景
+        function updateScene() {
+            const currentData = gameData[currentLevel];
+            levelElement.textContent = currentLevel + 1;
+            
+            // 更新文本区域
+            problemElement.textContent = currentData.problem;
+            hintElement.textContent = currentData.hint;
+            
+            // 清空场景
+            sceneElement.innerHTML = '';
+            currentObjectElements = [];
+            
+            // 添加其他物体（先添加物体，再添加动物，确保动物在物体上方）
+            currentData.objects.forEach((obj, index) => {
+                const objElement = document.createElement('div');
+                
+                if (obj.type === 'hole' || obj.type === 'ground') {
+                    // 对于非emoji元素，使用div和CSS样式
+                    objElement.className = `${obj.class}`;
+                } else {
+                    objElement.className = `${obj.class} scene-object`;
+                    objElement.textContent = obj.emoji;
+                }
+                
+                // 设置位置
+                Object.keys(obj.position).forEach(pos => {
+                    objElement.style[pos] = obj.position[pos];
+                });
+                
+                sceneElement.appendChild(objElement);
+                currentObjectElements.push(objElement);
+            });
+            
+            // 添加动物
+            currentAnimalElement = document.createElement('div');
+            currentAnimalElement.className = 'animal scene-object';
+            currentAnimalElement.textContent = currentData.animal;
+            currentAnimalElement.id = 'animal';
+            
+            // 设置动物初始位置
+            Object.keys(currentData.animalInitialPosition).forEach(pos => {
+                currentAnimalElement.style[pos] = currentData.animalInitialPosition[pos];
+            });
+            
+            // 设置动物初始旋转（如果有）
+            if (currentData.animalInitialRotation) {
+                currentAnimalElement.style.transform = currentData.animalInitialRotation;
+            }
+            
+            sceneElement.appendChild(currentAnimalElement);
+            
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+            
+            // 启用按钮
+            pushButton.disabled = false;
+            pullButton.disabled = false;
+            
+            // 更新进度条
+            progressBar.style.width = `${(currentLevel / totalLevels) * 100}%`;
+        }
+
+        // 检查答案
+        function checkAnswer(action) {
+            const currentData = gameData[currentLevel];
+            
+            // 禁用按钮防止重复点击
+            pushButton.disabled = true;
+            pullButton.disabled = true;
+            
+            // 移除之前的动画
+            if (currentAnimalElement) {
+                currentAnimalElement.classList.remove('shake');
+            }
+            
+            currentObjectElements.forEach(obj => {
+                obj.classList.remove('shake');
+            });
+            
+            if (action === currentData.correctAction) {
+                // 正确答案
+                score++;
+                feedbackElement.textContent = currentData.explanation;
+                feedbackElement.className = 'feedback correct';
+                
+                // 播放正确动画
+                if (currentData.animalFinalPosition && currentAnimalElement) {
+                    Object.keys(currentData.animalFinalPosition).forEach(pos => {
+                        currentAnimalElement.style[pos] = currentData.animalFinalPosition[pos];
+                    });
+                }
+                
+                if (currentData.animalFinalRotation && currentAnimalElement) {
+                    currentAnimalElement.style.transform = currentData.animalFinalRotation;
+                }
+                
+                if (currentData.objectFinalPosition && currentObjectElements[0]) {
+                    Object.keys(currentData.objectFinalPosition).forEach(pos => {
+                        currentObjectElements[0].style[pos] = currentData.objectFinalPosition[pos];
+                    });
+                }
+                
+                // 更新勋章
+                updateMedals();
+                
+                // 延迟进入下一关
+                setTimeout(nextLevel, 2000);
+            } else {
+                // 错误答案
+                feedbackElement.textContent = "不对哦，再想想！看看提示。";
+                feedbackElement.className = 'feedback incorrect';
+                
+                // 播放错误动画
+                if (currentAnimalElement) {
+                    currentAnimalElement.classList.add('shake');
+                }
+                
+                // 重新启用按钮
+                setTimeout(() => {
+                    pushButton.disabled = false;
+                    pullButton.disabled = false;
+                }, 1000);
+            }
+        }
+
+        // 更新勋章显示
+        function updateMedals() {
+            if (score >= 2) {
+                medals[0].classList.add('earned');
+                medals[0].classList.add('success-animation');
+            }
+            if (score >= 4) {
+                medals[1].classList.add('earned');
+                medals[1].classList.add('success-animation');
+            }
+            if (score >= 5) {
+                medals[2].classList.add('earned');
+                medals[2].classList.add('success-animation');
+            }
+        }
+
+        // 进入下一关
+        function nextLevel() {
+            currentLevel++;
+            
+            if (currentLevel < totalLevels) {
+                updateScene();
+            } else {
+                // 游戏结束
+                endGame();
+            }
+        }
+
+        // 游戏结束
+        function endGame() {
+            problemElement.textContent = "恭喜你！完成了所有挑战！";
+            hintElement.textContent = "你已经成为了一名真正的推拉小勇士！";
+            
+            sceneElement.innerHTML = '';
+            const celebrationElement = document.createElement('div');
+            celebrationElement.style.fontSize = '4rem';
+            celebrationElement.textContent = '🎉';
+            celebrationElement.style.animation = 'success 2s infinite';
+            sceneElement.appendChild(celebrationElement);
+            
+            feedbackElement.textContent = `你的得分: ${score}/${totalLevels}`;
+            feedbackElement.className = 'feedback correct';
+            
+            pushButton.style.display = 'none';
+            pullButton.style.display = 'none';
+            
+            // 更新进度条
+            progressBar.style.width = '100%';
+            
+            // 确保所有勋章都显示
+            updateMedals();
+        }
+
+        // 生成二维码
+        function generateQRCode() {
+            // 获取当前页面的URL
+            const currentUrl = window.location.href;
+            
+            // 使用QRCode.js生成二维码
+            QRCode.toCanvas(document.getElementById('qrcode'), currentUrl, {
+                width: 180,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error(error);
+                console.log('二维码生成成功！');
+            });
+        }
+
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
